@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-title" content="SipHouse">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-192.png">
+<title>SipHouse</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────── TOKENS ─────────────── */
+:root{
+  --bg:#f7f7f8;
+  --card:#fff;
+  --bdr:#e8e8e8;
+  --txt:#111;
+  --sub:#666;
+  --muted:#999;
+  --blk:#111;
+  --accent:#111;
+  --red:#c00;--redbg:#fff0f0;--redbdr:#facccc;
+  --grn:#166534;--grnbg:#f0fdf4;--grnbdr:#bbf7d0;
+  --warn:#854d0e;--warnbg:#fefce8;--warnbdr:#fde68a;
+  --bnav-h:64px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+
+/* ─────────────── RESET ─────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;height:100%;}
+body{background:var(--bg);color:var(--txt);font-family:'Source Sans 3',sans-serif;font-size:16px;line-height:1.5;overscroll-behavior:none;min-height:100%;-webkit-font-smoothing:antialiased;}
+
+/* ─────────────── TOPBAR ─────────────── */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:var(--blk);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:52px;
+  /* safe area for notch phones */
+  padding-top:env(safe-area-inset-top,0px);
+}
+.tlogo{font-family:'Playfair Display',serif;font-size:21px;font-weight:900;letter-spacing:.5px;}
+.tlogo em{opacity:.35;font-style:normal;font-weight:400;font-size:9px;margin-left:5px;letter-spacing:3px;text-transform:uppercase;vertical-align:middle;}
+.abtn{background:transparent;border:1px solid #444;color:#aaa;font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:inherit;white-space:nowrap;touch-action:manipulation;transition:all .15s;min-height:36px;}
+.abtn.on{background:#fff;color:#111;border-color:#fff;font-weight:700;}
+
+/* ─────────────── SHELL ─────────────── */
+.shell{display:flex;min-height:calc(100dvh - 52px);}
+
+/* Sidebar hidden on mobile, visible on desktop */
+.sidebar{
+  display:none;
+  width:200px;flex-shrink:0;
+  background:var(--card);border-right:1px solid var(--bdr);
+  padding:16px 0;
+  position:sticky;top:52px;height:calc(100dvh - 52px);overflow-y:auto;
+}
+.ns{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:14px 16px 4px;font-weight:700;}
+.ni{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;color:var(--sub);font-size:14px;font-weight:600;border-left:3px solid transparent;transition:all .12s;}
+.ni:hover{color:var(--blk);background:var(--bg);}
+.ni.active{color:var(--blk);border-left-color:var(--blk);background:var(--bg);}
+.ni .ic{font-size:16px;width:20px;text-align:center;}
+.nbadge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;}
+
+/* ─────────────── MAIN ─────────────── */
+.main{
+  flex:1;min-width:0;
+  padding:16px 14px calc(var(--bnav-h) + var(--safe-b) + 16px);
+}
+.page{display:none;}
+.page.active{display:block;animation:pu .2s ease;}
+@keyframes pu{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ─────────────── PAGE HEADER ─────────────── */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.ph-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;line-height:1.1;}
+
+/* ─────────────── STAT CARDS ─────────────── */
+.sr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.sc{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:13px 12px;}
+.sc.dk{background:var(--blk);color:#fff;border-color:transparent;}
+.sc-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;font-weight:700;}
+.sc.dk .sc-lbl{color:#888;}
+.sc-val{font-family:'Source Code Pro',monospace;font-size:18px;font-weight:700;line-height:1.1;}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.sc.dk .sc-sub{color:#555;}
+
+/* ─────────────── SECTION LABEL ─────────────── */
+.slbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0 2px;}
+
+/* ─────────────── CARD LIST (replaces tables on mobile) ─────────────── */
+.card-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.cl-card{
+  background:var(--card);border:1px solid var(--bdr);border-radius:12px;
+  padding:14px 15px;cursor:default;
+  transition:background .1s;
+  -webkit-user-select:none;user-select:none;
+}
+.cl-card:active{background:#f5f5f5;}
+.cl-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.cl-name{font-weight:700;font-size:15px;line-height:1.2;}
+.cl-name.tap{cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:var(--blk);}
+.cl-amt{font-family:'Source Code Pro',monospace;font-size:16px;font-weight:700;}
+.cl-meta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--sub);margin-bottom:8px;}
+.cl-meta span{display:inline-flex;align-items:center;gap:3px;}
+.cl-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ─────────────── PILLS ─────────────── */
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.p-blk{background:var(--blk);color:#fff;}
+.p-red{background:var(--redbg);color:var(--red);border:1px solid var(--redbdr);}
+.p-grn{background:var(--grnbg);color:var(--grn);border:1px solid var(--grnbdr);}
+.p-wrn{background:var(--warnbg);color:var(--warn);border:1px solid var(--warnbdr);}
+.p-mut{background:var(--bg);color:var(--muted);border:1px solid var(--bdr);}
+
+/* ─────────────── BUTTONS ─────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;
+  cursor:pointer;border:none;transition:all .12s;
+  font-family:'Source Sans 3',sans-serif;white-space:nowrap;
+  touch-action:manipulation;min-height:48px;-webkit-appearance:none;
+}
+.b-blk{background:var(--blk);color:#fff;} .b-blk:active{background:#333;}
+.b-out{background:transparent;color:var(--blk);border:1.5px solid var(--blk);} .b-out:active{background:var(--blk);color:#fff;}
+.b-gst{background:var(--bg);color:var(--sub);border:1px solid var(--bdr);} .b-gst:active{color:var(--blk);border-color:var(--blk);}
+.b-red{background:var(--redbg);color:var(--red);border:1px solid var(--redbdr);} .b-red:active{background:var(--red);color:#fff;}
+.b-grn{background:var(--grnbg);color:var(--grn);border:1px solid var(--grnbdr);} .b-grn:active{background:var(--grn);color:#fff;}
+.b-sm{padding:8px 14px;font-size:13px;min-height:38px;}
+.b-xs{padding:6px 12px;font-size:12px;min-height:34px;border-radius:8px;}
+.b-full{width:100%;}
+
+/* FAB — floating action button for primary action */
+.fab{
+  position:fixed;
+  bottom:calc(var(--bnav-h) + var(--safe-b) + 14px);
+  right:16px;
+  z-index:190;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--blk);color:#fff;
+  font-size:26px;line-height:1;
+  border:none;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,.28);
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+  transition:transform .12s,box-shadow .12s;
+}
+.fab:active{transform:scale(.93);box-shadow:0 2px 8px rgba(0,0,0,.2);}
+
+/* ─────────────── MODAL ─────────────── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:flex-end;justify-content:center;}
+.mbg.open{display:flex;}
+.modal{
+  background:var(--card);
+  border-radius:22px 22px 0 0;
+  width:100%;max-width:600px;
+  max-height:94dvh;overflow-y:auto;
+  padding:8px 0 0;
+  border-top:3px solid var(--blk);
+  -webkit-overflow-scrolling:touch;
+}
+.modal-drag{width:44px;height:5px;background:var(--bdr);border-radius:3px;margin:0 auto 14px;}
+.modal-body{padding:0 16px calc(env(safe-area-inset-bottom,0px) + 24px);}
+.modal.wide{max-width:680px;}
+
+@media(min-width:600px){
+  .mbg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;border:2px solid var(--blk);padding:0;}
+  .modal-drag{display:none;}
+  .modal-body{padding:24px;}
+}
+
+@keyframes su{from{transform:translateY(80px);opacity:0;}to{transform:none;opacity:1;}}
+.modal{animation:su .24s cubic-bezier(.2,.8,.4,1);}
+.mtitle{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.mclose{cursor:pointer;font-size:28px;color:var(--muted);line-height:1;padding:0 4px;touch-action:manipulation;}
+.mclose:active{color:var(--blk);}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;}
+.mact-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.mdiv{border:none;border-top:1px solid var(--bdr);margin:16px 0;}
+
+/* ─────────────── FORMS ─────────────── */
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:400px){.fr{grid-template-columns:1fr;}}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:6px;font-weight:700;}
+.fg input,.fg select{
+  width:100%;padding:14px 14px;
+  background:var(--bg);
+  border:1.5px solid var(--bdr);border-radius:10px;
+  color:var(--txt);font-size:16px;font-family:'Source Sans 3',sans-serif;
+  outline:none;transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.fg input:focus,.fg select:focus{border-color:var(--blk);background:#fff;}
+.fg input[readonly]{background:var(--bg);color:var(--sub);cursor:default;}
+.fg-calc{
+  background:var(--bg);border:1.5px solid var(--bdr);border-radius:10px;
+  padding:14px 14px;
+  font-family:'Source Code Pro',monospace;font-size:22px;font-weight:700;color:var(--blk);
+  line-height:1.2;
+}
+
+/* ─────────────── INFO BOX ─────────────── */
+.ibox{background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:14px 15px;margin-bottom:16px;font-size:14px;line-height:1.7;}
+
+/* ─────────────── ALERTS ─────────────── */
+.alert{padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.a-warn{background:var(--warnbg);border:1px solid var(--warnbdr);color:var(--warn);}
+.a-info{background:var(--bg);border:1px solid var(--bdr);color:var(--sub);}
+.a-red{background:var(--redbg);border:1px solid var(--redbdr);color:var(--red);}
+.a-grn{background:var(--grnbg);border:1px solid var(--grnbdr);color:var(--grn);}
+
+/* ─────────────── HISTORY ─────────────── */
+.hist-item{border:1px solid var(--bdr);border-radius:10px;padding:13px 14px;margin-bottom:8px;}
+.hist-date{font-size:11px;color:var(--muted);margin-bottom:5px;}
+.hist-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;}
+
+/* ─────────────── PROGRESS ─────────────── */
+.prog{height:4px;background:var(--bdr);border-radius:2px;margin-top:5px;overflow:hidden;}
+.prog-f{height:100%;border-radius:2px;background:var(--blk);}
+
+/* ─────────────── BALANCE SHEET ─────────────── */
+.bs-card{border:1.5px solid var(--blk);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.bs-head{background:var(--blk);color:#fff;padding:11px 16px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.bs-row{display:flex;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--bdr);font-size:14px;align-items:center;}
+.bs-row:last-child{border-bottom:none;}
+.bs-sec{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:7px 16px;background:var(--bg);}
+.bs-total{display:flex;justify-content:space-between;padding:11px 16px;font-weight:700;font-size:15px;background:var(--bg);border-top:2px solid var(--blk);}
+.bs-net{display:flex;justify-content:space-between;padding:16px 18px;font-weight:900;font-size:17px;background:var(--blk);color:#fff;border-radius:12px;margin-bottom:16px;}
+
+/* ─────────────── INV ITEM ROW ─────────────── */
+.inv-row{display:grid;grid-template-columns:1fr 64px auto;gap:6px;margin-bottom:10px;align-items:center;}
+
+/* ─────────────── EMPTY STATE ─────────────── */
+.empty{text-align:center;padding:36px 16px;color:var(--muted);font-size:14px;}
+.ei{font-size:34px;opacity:.2;margin-bottom:8px;}
+.mono{font-family:'Source Code Pro',monospace;}
+
+/* ─────────────── ADMIN ONLY ─────────────── */
+.admin-only{display:none;}
+.admin-mode .admin-only{display:inline-flex;}
+
+/* ─────────────── BOTTOM NAV ─────────────── */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:var(--blk);
+  border-top:1px solid #222;
+  padding-bottom:var(--safe-b);
+}
+.bnav-inner{display:flex;height:var(--bnav-h);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.bnav-inner::-webkit-scrollbar{display:none;}
+.bni{
+  flex:1;min-width:54px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;color:#555;
+  font-size:9px;letter-spacing:.3px;text-transform:uppercase;
+  border:none;background:none;padding:0;
+  font-family:'Source Sans 3',sans-serif;touch-action:manipulation;
+  position:relative;transition:color .1s;
+}
+.bni.active{color:#fff;}
+.bni.active .bicon{transform:scale(1.1);}
+.bicon{font-size:20px;line-height:1;transition:transform .1s;}
+.bnbadge{position:absolute;top:7px;right:calc(50% - 20px);background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center;font-family:'Source Sans 3',sans-serif;}
+
+/* ─────────────── DESKTOP UPGRADES ─────────────── */
+@media(min-width:700px){
+  .sidebar{display:block;}
+  .bnav{display:none;}
+  .fab{display:none;}
+  .main{padding:22px 22px 24px;}
+  .ph-title{font-size:28px;}
+  /* On desktop, show tables instead of card lists */
+  .card-list{display:none;}
+  .desk-table{display:block;}
+  .sr{grid-template-columns:repeat(3,1fr);}
+  .bs-row{font-size:13px;}
+}
+
+/* ─────────────── DESKTOP TABLE (hidden on mobile) ─────────────── */
+.desk-table{display:none;}
+.tw{background:var(--card);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.tw-hd{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--bdr);}
+.tw-ttl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:8px 12px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--bdr);font-weight:700;white-space:nowrap;}
+td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--bdr);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+.clink{cursor:pointer;color:var(--blk);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
+.clink:hover{opacity:.65;}
+
+/* ─────────────── MISC ─────────────── */
+.two-col{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:700px){.two-col{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tlogo">SipHouse <em>Manager</em></div>
+  <button class="abtn" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR (desktop only) -->
+  <aside class="sidebar">
+    <div class="ns">Overview</div>
+    <div class="ni active" onclick="nav('dashboard')"><span class="ic">🏠</span>Dashboard</div>
+    <div class="ns">Operations</div>
+    <div class="ni" onclick="nav('stock')"><span class="ic">📦</span>Stock</div>
+    <div class="ni" onclick="nav('invoices')"><span class="ic">🧾</span>Invoices</div>
+    <div class="ns">Finance</div>
+    <div class="ni" onclick="nav('debtors')"><span class="ic">📤</span>Debtors <span class="nbadge" id="dbadge">0</span></div>
+    <div class="ni" onclick="nav('creditors')"><span class="ic">📥</span>Creditors</div>
+    <div class="ni" onclick="nav('profit')"><span class="ic">📈</span>Profit</div>
+    <div class="ni" onclick="nav('balance')"><span class="ic">⚖️</span>Balance Sheet</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div id="page-dashboard" class="page active">
+      <div class="ph"><div class="ph-title">Dashboard</div></div>
+      <div class="sr" id="d-stats"></div>
+      <div class="two-col">
+        <div>
+          <div class="slbl">⚠️ Low Stock</div>
+          <div id="d-low"></div>
+        </div>
+        <div>
+          <div class="slbl">💸 Outstanding Debtors</div>
+          <div id="d-deb"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STOCK ══ -->
+    <div id="page-stock" class="page">
+      <div class="ph">
+        <div class="ph-title">Stock</div>
+        <button class="btn b-blk b-sm" onclick="openAddStock()" style="display:none" id="desk-add-stock">+ Add Product</button>
+      </div>
+      <div id="s-alerts"></div>
+      <!-- Mobile cards -->
+      <div class="slbl" id="s-cnt"></div>
+      <div class="card-list" id="s-cards"></div>
+      <!-- Desktop table -->
+      <div class="desk-table">
+        <div class="tw">
+          <div class="tw-hd"><span class="tw-ttl">All Products</span></div>
+          <div class="tscroll"><table>
+            <thead><tr><th>Product</th><th>Cat</th><th>Cost</th><th>Sell</th><th>Qty</th><th>Reorder</th><th>Status</th><th></th></tr></thead>
+            <tbody id="s-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INVOICES ══ -->
+    <div id="page-invoices" class="page">
+      <div class="ph">
+        <div class="ph-title">Invoices</div>
+        <button class="btn b-blk b-sm" onclick="openNewInv()" style="display:none" id="desk-add-inv">+ New Invoice</button>
+      </div>
+      <!-- Mobile cards -->
+      <div class="card-list" id="inv-cards"></div>
+      <!-- Desktop table -->
+      <div class="desk-table">
+        <div class="tw">
+          <div class="tw-hd"><span class="tw-ttl">All Invoices</span></div>
+          <div class="tscroll"><table>
+            <thead><tr><th>Inv #</th><th>Client</th><th>Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+            <tbody id="inv-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DEBTORS ══ -->
+    <div id="page-debtors" class="page">
+      <div class="ph">
+        <div class="ph-title">Debtors</div>
+        <button class="btn b-blk b-sm" onclick="openModal('m-adddeb')" style="display:none" id="desk-add-deb">+ Add</button>
+      </div>
+      <div class="sr" id="deb-stats"></div>
+      <!-- Mobile cards -->
+      <div class="card-list" id="deb-cards"></div>
+      <!-- Desktop table -->
+      <div class="desk-table">
+        <div class="tw">
+          <div class="tw-hd"><span class="tw-ttl">Outstanding Balances</span></div>
+          <div class="tscroll"><table>
+            <thead><tr><th>Client</th><th>Phone</th><th>Owed</th><th>Last Inv</th><th>Due</th><th>Status</th><th></th></tr></thead>
+            <tbody id="deb-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CREDITORS ══ -->
+    <div id="page-creditors" class="page">
+      <div class="ph">
+        <div class="ph-title">Creditors</div>
+        <button class="btn b-blk b-sm" onclick="openModal('m-addcred')" style="display:none" id="desk-add-cred">+ Add</button>
+      </div>
+      <div class="sr" id="cred-stats"></div>
+      <!-- Mobile cards -->
+      <div class="card-list" id="cred-cards"></div>
+      <!-- Desktop table -->
+      <div class="desk-table">
+        <div class="tw">
+          <div class="tw-hd"><span class="tw-ttl">Supplier Payables</span></div>
+          <div class="tscroll"><table>
+            <thead><tr><th>Supplier</th><th>Phone</th><th>Owed</th><th>Last Supply</th><th>Due</th><th>Status</th><th></th></tr></thead>
+            <tbody id="cred-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROFIT ══ -->
+    <div id="page-profit" class="page">
+      <div class="ph"><div class="ph-title">Profit</div></div>
+      <div class="sr" id="p-stats"></div>
+      <div class="two-col">
+        <div>
+          <div class="slbl">Top Products by Profit</div>
+          <div id="p-prod-cards" class="card-list"></div>
+          <div class="desk-table tw">
+            <div class="tw-hd"><span class="tw-ttl">Top Products</span></div>
+            <div class="tscroll"><table><thead><tr><th>Product</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead><tbody id="p-prod"></tbody></table></div>
+          </div>
+        </div>
+        <div>
+          <div class="slbl">Invoice Breakdown</div>
+          <div id="p-inv-cards" class="card-list"></div>
+          <div class="desk-table tw">
+            <div class="tw-hd"><span class="tw-ttl">Invoices</span></div>
+            <div class="tscroll"><table><thead><tr><th>Inv #</th><th>Client</th><th>Revenue</th><th>Profit</th><th>Margin</th></tr></thead><tbody id="p-inv"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BALANCE SHEET ══ -->
+    <div id="page-balance" class="page">
+      <div class="ph"><div class="ph-title">Balance Sheet</div></div>
+      <div class="bs-net" id="bs-net"></div>
+      <div class="bs-card">
+        <div class="bs-head">📤 Liabilities — What You Owe</div>
+        <div id="bs-liab"></div>
+        <div class="bs-total"><span>Total Liabilities</span><span class="mono" id="bs-liab-tot">GH₵0.00</span></div>
+      </div>
+      <div class="bs-card">
+        <div class="bs-head">📥 Assets — What You Own</div>
+        <div id="bs-assets"></div>
+        <div class="bs-total"><span>Total Assets</span><span class="mono" id="bs-asset-tot">GH₵0.00</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Enter cash and bank balances below. Stock is auto-calculated from cost × quantity.</div>
+      <div class="fr">
+        <div class="fg"><label>Cash on Hand (GH₵)</label><input id="bs-cash" type="number" inputmode="decimal" placeholder="0.00" oninput="calcBS()"></div>
+        <div class="fg"><label>Bank Balance (GH₵)</label><input id="bs-bank" type="number" inputmode="decimal" placeholder="0.00" oninput="calcBS()"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav"><div class="bnav-inner">
+  <button class="bni active" onclick="nav('dashboard')"><span class="bicon">🏠</span>Home</button>
+  <button class="bni" onclick="nav('stock')"><span class="bicon">📦</span>Stock</button>
+  <button class="bni" onclick="nav('invoices')"><span class="bicon">🧾</span>Bills</button>
+  <button class="bni" onclick="nav('debtors')"><span class="bicon">📤</span>Debtors<span class="bnbadge" id="bnbadge">0</span></button>
+  <button class="bni" onclick="nav('creditors')"><span class="bicon">📥</span>Suppliers</button>
+  <button class="bni" onclick="nav('profit')"><span class="bicon">📈</span>Profit</button>
+  <button class="bni" onclick="nav('balance')"><span class="bicon">⚖️</span>Balance</button>
+</div></nav>
+
+<!-- FAB (mobile primary action, changes per page) -->
+<button class="fab" id="fab" onclick="fabAction()" style="display:none">+</button>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- ADMIN LOGIN -->
+<div class="mbg" id="m-admin"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Admin Login <span class="mclose" onclick="closeModal('m-admin')">✕</span></div>
+  <div class="fg"><label>Password</label><input id="admpw" type="password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+  <div id="adm-err" class="alert a-red" style="display:none">⚠ Incorrect password</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Default password: <strong>admin123</strong></div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-admin')">Cancel</button>
+    <button class="btn b-blk" onclick="doLogin()">Login</button>
+  </div>
+</div></div></div>
+
+<!-- ADD / EDIT STOCK -->
+<div class="mbg" id="m-stock"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle" id="m-stock-ttl">Add Product <span class="mclose" onclick="closeModal('m-stock')">✕</span></div>
+  <input type="hidden" id="s-eid">
+  <div class="fg"><label>Product Name</label><input id="s-name" placeholder="e.g. Coca-Cola 500ml" autocomplete="off"></div>
+  <div class="fr">
+    <div class="fg"><label>Category</label>
+      <select id="s-cat"><option>Soft Drinks</option><option>Energy Drinks</option><option>Water</option><option>Juice</option><option>Beer</option><option>Wine</option><option>Spirits</option><option>Other</option></select>
+    </div>
+    <div class="fg"><label>Reorder Level</label><input id="s-reorder" type="number" inputmode="numeric" placeholder="10" min="0"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Cost Price (GH₵)</label><input id="s-cost" type="number" inputmode="decimal" placeholder="0.00" min="0"></div>
+    <div class="fg"><label>Selling Price (GH₵)</label><input id="s-price" type="number" inputmode="decimal" placeholder="0.00" min="0"></div>
+  </div>
+  <div class="fg"><label>Opening Stock (units)</label><input id="s-qty" type="number" inputmode="numeric" placeholder="0" min="0"></div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-stock')">Cancel</button>
+    <button class="btn b-blk" id="m-stock-btn" onclick="saveStock()">Add Product</button>
+  </div>
+</div></div></div>
+
+<!-- RESTOCK -->
+<div class="mbg" id="m-restock"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Restock <span class="mclose" onclick="closeModal('m-restock')">✕</span></div>
+  <input type="hidden" id="rs-id">
+  <div class="fg"><label>Product</label><input id="rs-name" readonly></div>
+  <div class="fr">
+    <div class="fg"><label>Category</label><input id="rs-cat" readonly></div>
+    <div class="fg"><label>Reorder Level</label><input id="rs-rlvl" readonly></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Cost Price</label><input id="rs-cost" readonly></div>
+    <div class="fg"><label>Selling Price</label><input id="rs-price" readonly></div>
+  </div>
+  <div class="fg"><label>Current Stock</label><input id="rs-cur" readonly></div>
+  <hr class="mdiv">
+  <div class="fg"><label>Quantity to Add</label><input id="rs-qty" type="number" inputmode="numeric" placeholder="How many units to add?" min="1" oninput="previewRestock()"></div>
+  <div id="rs-preview" class="alert a-info" style="display:none"></div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-restock')">Cancel</button>
+    <button class="btn b-blk" onclick="doRestock()">✓ Add Stock</button>
+  </div>
+</div></div></div>
+
+<!-- NEW / EDIT INVOICE -->
+<div class="mbg" id="m-invoice"><div class="modal wide"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle" id="m-inv-ttl">New Invoice <span class="mclose" onclick="closeModal('m-invoice')">✕</span></div>
+  <input type="hidden" id="i-eid">
+  <div class="fr">
+    <div class="fg"><label>Client Name</label><input id="i-client" placeholder="Client name" autocomplete="off"></div>
+    <div class="fg"><label>Phone</label><input id="i-phone" type="tel" placeholder="0XX XXX XXXX"></div>
+  </div>
+  <div class="fg"><label>Date</label><input id="i-date" type="date"></div>
+  <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:10px;font-weight:700">Items</div>
+  <div id="i-items"></div>
+  <button class="btn b-gst b-sm" style="margin-bottom:16px;width:100%" onclick="addInvItem()">+ Add Item</button>
+  <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px"><span style="color:var(--sub)">Subtotal</span><span class="mono" id="i-sub">GH₵0.00</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800"><span>Total</span><span class="mono" id="i-total">GH₵0.00</span></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Amount Paid (GH₵)</label><input id="i-paid" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="calcBal()"></div>
+    <div class="fg"><label>Balance Due</label><div class="fg-calc" id="i-bal" style="color:var(--red)">GH₵0.00</div></div>
+  </div>
+  <div id="i-debnote" class="alert a-warn" style="display:none">⚠ Unpaid balance will be posted to this client's debtor account.</div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-invoice')">Cancel</button>
+    <button class="btn b-blk" id="m-inv-btn" onclick="saveInv()">Create Invoice</button>
+  </div>
+</div></div></div>
+
+<!-- VIEW INVOICE -->
+<div class="mbg" id="m-viewinv"><div class="modal wide"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle" style="font-size:18px">Invoice <span class="mclose" onclick="closeModal('m-viewinv')">✕</span></div>
+  <div id="inv-preview"></div>
+  <div style="margin-top:12px"><button class="btn b-gst b-full" onclick="closeModal('m-viewinv')">Close</button></div>
+</div></div></div>
+
+<!-- PAY INVOICE -->
+<div class="mbg" id="m-payinv"><div class="modal wide"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Pay Invoice <span class="mclose" onclick="closeModal('m-payinv')">✕</span></div>
+  <input type="hidden" id="pi-id">
+  <div class="fr">
+    <div class="fg"><label>Client</label><input id="pi-client" readonly></div>
+    <div class="fg"><label>Invoice #</label><input id="pi-ref" readonly></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Date</label><input id="pi-date" readonly></div>
+    <div class="fg"><label>Phone</label><input id="pi-phone" readonly></div>
+  </div>
+  <hr class="mdiv">
+  <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:10px;font-weight:700">Items</div>
+  <div id="pi-items" style="margin-bottom:16px"></div>
+  <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px"><span style="color:var(--sub)">Invoice Total</span><span class="mono" id="pi-total">GH₵0.00</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span style="color:var(--sub)">Already Paid</span><span class="mono" id="pi-paid">GH₵0.00</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;border-top:1px solid var(--bdr);padding-top:10px;margin-top:4px"><span>Balance Due</span><span class="mono" id="pi-bal" style="color:var(--red)">GH₵0.00</span></div>
+  </div>
+  <div class="fg"><label>Amount to Pay Now (GH₵)</label><input id="pi-amt" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="previewPayInv()"></div>
+  <div id="pi-preview" class="alert a-info" style="display:none"></div>
+  <div class="mact-2">
+    <button class="btn b-grn b-full" onclick="payAllInv()">✓ Pay All</button>
+    <button class="btn b-blk b-full" onclick="confirmPayInv()">Confirm</button>
+  </div>
+  <div style="margin-top:8px"><button class="btn b-gst b-full" onclick="closeModal('m-payinv')">Cancel</button></div>
+</div></div></div>
+
+<!-- ADD DEBTOR -->
+<div class="mbg" id="m-adddeb"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Add Debtor <span class="mclose" onclick="closeModal('m-adddeb')">✕</span></div>
+  <div class="fr">
+    <div class="fg"><label>Client Name</label><input id="dn-name" placeholder="Client name" autocomplete="off"></div>
+    <div class="fg"><label>Phone</label><input id="dn-phone" type="tel" placeholder="0XX XXX XXXX"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Amount Owed (GH₵)</label><input id="dn-amt" type="number" inputmode="decimal" placeholder="0.00" min="0"></div>
+    <div class="fg"><label>Due Date</label><input id="dn-due" type="date"></div>
+  </div>
+  <div class="fg"><label>Notes</label><input id="dn-notes" placeholder="Invoice ref, reason..."></div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-adddeb')">Cancel</button>
+    <button class="btn b-blk" onclick="addDebtor()">Add Debtor</button>
+  </div>
+</div></div></div>
+
+<!-- PAY DEBTOR -->
+<div class="mbg" id="m-paydeb"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Pay Debtor <span class="mclose" onclick="closeModal('m-paydeb')">✕</span></div>
+  <div class="fr">
+    <div class="fg"><label>Client</label><input id="pd-client" readonly></div>
+    <div class="fg"><label>Phone</label><input id="pd-phone" readonly></div>
+  </div>
+  <div class="fg"><label>Reference</label><input id="pd-notes" readonly></div>
+  <div class="fg"><label>Amount Outstanding</label><div class="fg-calc" id="pd-owed" style="color:var(--red)">GH₵0.00</div></div>
+  <div class="fg"><label>Amount to Pay Now (GH₵)</label><input id="pd-amt" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="previewPayDeb()"></div>
+  <div id="pd-preview" class="alert a-info" style="display:none"></div>
+  <div class="mact-2">
+    <button class="btn b-grn b-full" onclick="payAllDeb()">✓ Pay All</button>
+    <button class="btn b-blk b-full" onclick="confirmPayDeb()">Confirm</button>
+  </div>
+  <div style="margin-top:8px"><button class="btn b-gst b-full" onclick="closeModal('m-paydeb')">Cancel</button></div>
+</div></div></div>
+
+<!-- DEBTOR HISTORY -->
+<div class="mbg" id="m-debhist"><div class="modal wide"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle" id="dh-title">History <span class="mclose" onclick="closeModal('m-debhist')">✕</span></div>
+  <div id="dh-content"></div>
+  <div style="margin-top:12px"><button class="btn b-gst b-full" onclick="closeModal('m-debhist')">Close</button></div>
+</div></div></div>
+
+<!-- ADD CREDITOR -->
+<div class="mbg" id="m-addcred"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Add Creditor <span class="mclose" onclick="closeModal('m-addcred')">✕</span></div>
+  <div class="fr">
+    <div class="fg"><label>Supplier Name</label><input id="cr-name" placeholder="Supplier name" autocomplete="off"></div>
+    <div class="fg"><label>Phone</label><input id="cr-phone" type="tel" placeholder="Phone number"></div>
+  </div>
+  <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:10px;font-weight:700">Initial Supply</div>
+  <div class="fg"><label>Product / Description</label><input id="cr-prod" placeholder="e.g. Coca-Cola 500ml × crate"></div>
+  <div class="fr">
+    <div class="fg"><label>Quantity</label><input id="cr-qty" type="number" inputmode="numeric" placeholder="0" min="0" oninput="calcCred()"></div>
+    <div class="fg"><label>Rate per Unit (GH₵)</label><input id="cr-rate" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="calcCred()"></div>
+  </div>
+  <div class="fg"><label>Amount (auto-calculated)</label><div class="fg-calc" id="cr-calc">GH₵0.00</div></div>
+  <div class="fr">
+    <div class="fg"><label>Due Date</label><input id="cr-due" type="date"></div>
+    <div class="fg"><label>Notes</label><input id="cr-notes" placeholder="Order ref..."></div>
+  </div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-addcred')">Cancel</button>
+    <button class="btn b-blk" onclick="addCreditor()">Add Creditor</button>
+  </div>
+</div></div></div>
+
+<!-- PAY CREDITOR -->
+<div class="mbg" id="m-paycred"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Pay Creditor <span class="mclose" onclick="closeModal('m-paycred')">✕</span></div>
+  <div class="fr">
+    <div class="fg"><label>Supplier</label><input id="pc-supplier" readonly></div>
+    <div class="fg"><label>Phone</label><input id="pc-phone" readonly></div>
+  </div>
+  <div class="fg"><label>Amount Outstanding</label><div class="fg-calc" id="pc-owed" style="color:var(--red)">GH₵0.00</div></div>
+  <div class="fg"><label>Amount to Pay Now (GH₵)</label><input id="pc-amt" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="previewPayCred()"></div>
+  <div id="pc-preview" class="alert a-info" style="display:none"></div>
+  <div class="mact-2">
+    <button class="btn b-grn b-full" onclick="payAllCred()">✓ Pay All</button>
+    <button class="btn b-blk b-full" onclick="confirmPayCred()">Confirm</button>
+  </div>
+  <div style="margin-top:8px"><button class="btn b-gst b-full" onclick="closeModal('m-paycred')">Cancel</button></div>
+</div></div></div>
+
+<!-- ADDITIONAL SUPPLY -->
+<div class="mbg" id="m-supply"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle">Record Supply <span class="mclose" onclick="closeModal('m-supply')">✕</span></div>
+  <div class="ibox" id="sup-info"></div>
+  <div class="fg"><label>Product / Description</label><input id="sup-prod" placeholder="e.g. Pepsi 500ml × 50"></div>
+  <div class="fr">
+    <div class="fg"><label>Quantity</label><input id="sup-qty" type="number" inputmode="numeric" placeholder="0" min="0" oninput="calcSup()"></div>
+    <div class="fg"><label>Rate / Unit (GH₵)</label><input id="sup-rate" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="calcSup()"></div>
+  </div>
+  <div class="fg"><label>Amount (auto-calculated)</label><div class="fg-calc" id="sup-calc">GH₵0.00</div></div>
+  <div class="fg"><label>Notes</label><input id="sup-notes" placeholder="Delivery note, reference..."></div>
+  <div class="mact">
+    <button class="btn b-gst" onclick="closeModal('m-supply')">Cancel</button>
+    <button class="btn b-blk" onclick="saveSupply()">Record Supply</button>
+  </div>
+</div></div></div>
+
+<!-- CREDITOR HISTORY -->
+<div class="mbg" id="m-credhist"><div class="modal wide"><div class="modal-drag"></div><div class="modal-body">
+  <div class="mtitle" id="ch-title">Supply History <span class="mclose" onclick="closeModal('m-credhist')">✕</span></div>
+  <div id="ch-content"></div>
+  <div style="margin-top:12px"><button class="btn b-gst b-full" onclick="closeModal('m-credhist')">Close</button></div>
+</div></div></div>
+
+<!-- ══════════════════ SCRIPT ══════════════════ -->
+<script>
+// ═══ PERSISTENCE ═══
+const STORE_KEY = 'siphouse_data_v1';
+
+const DEFAULT_DATA = {
+  stock:[
+    {id:1,name:'Coca-Cola 500ml',cat:'Soft Drinks',cost:2.50,price:4.00,qty:85,reorder:20},
+    {id:2,name:'Pepsi 500ml',cat:'Soft Drinks',cost:2.20,price:3.80,qty:12,reorder:20},
+    {id:3,name:'Red Bull 250ml',cat:'Energy Drinks',cost:6.00,price:10.00,qty:40,reorder:15},
+    {id:4,name:'Evian Water 750ml',cat:'Water',cost:1.80,price:3.50,qty:7,reorder:30},
+    {id:5,name:'Orange Juice 1L',cat:'Juice',cost:4.00,price:7.00,qty:25,reorder:10},
+    {id:6,name:'Heineken 330ml',cat:'Beer',cost:5.00,price:9.00,qty:60,reorder:25},
+  ],
+  invoices:[
+    {id:'INV-001',client:'Kofi Mensah',phone:'0244001001',date:'2024-01-10',
+      items:[{product:'Coca-Cola 500ml',cost:2.50,price:4.00,qty:24},{product:'Heineken 330ml',cost:5.00,price:9.00,qty:12}],paid:204.00},
+    {id:'INV-002',client:'Ama Owusu',phone:'0244002002',date:'2024-01-15',
+      items:[{product:'Red Bull 250ml',cost:6.00,price:10.00,qty:6},{product:'Orange Juice 1L',cost:4.00,price:7.00,qty:4}],paid:30.00},
+    {id:'INV-003',client:'Kwame Asante',phone:'0244003003',date:'2024-01-20',
+      items:[{product:'Evian Water 750ml',cost:1.80,price:3.50,qty:10}],paid:0},
+  ],
+  debtors:[
+    {id:10,client:'Ama Owusu',phone:'0244002002',amount:58.00,lastInv:'INV-002',due:'2024-02-15',notes:'Partial pay — INV-002'},
+    {id:11,client:'Kwame Asante',phone:'0244003003',amount:35.00,lastInv:'INV-003',due:'2024-02-20',notes:'INV-003 unpaid'},
+  ],
+  payments:[
+    {debId:10,date:'2024-01-15',amount:30.00,note:'Partial payment — INV-002'},
+  ],
+  creditors:[
+    {id:20,supplier:'BevCo Wholesale',phone:'0302001001',amount:1200.00,lastSupply:'2024-01-05',due:'2024-02-05',notes:'Jan stock order',
+      supplies:[{date:'2024-01-05',product:'Coca-Cola 500ml ×100',qty:100,rate:2.50,amount:250,notes:''},{date:'2024-01-05',product:'Heineken 330ml ×100',qty:100,rate:5.00,amount:500,notes:''}]},
+    {id:21,supplier:'FreshDrinks Ltd',phone:'0302002002',amount:580.00,lastSupply:'2024-01-12',due:'2024-02-12',notes:'Juice & water',
+      supplies:[{date:'2024-01-12',product:'Orange Juice 1L ×50',qty:50,rate:4.00,amount:200,notes:''}]},
+  ],
+  uid:50,
+  balance:{cash:0,bank:0},
+};
+
+// Load from localStorage or fall back to defaults
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const saved = JSON.parse(raw);
+      return Object.assign({}, DEFAULT_DATA, saved);
+    }
+  } catch(e){ console.warn('Could not load saved data:', e); }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA)); // deep clone defaults
+}
+
+// Save to localStorage (called after every mutation)
+function persist(){
+  try {
+    const toSave = {
+      stock: S.stock,
+      invoices: S.invoices,
+      debtors: S.debtors,
+      payments: S.payments,
+      creditors: S.creditors,
+      uid: S.uid,
+      balance: S.balance,
+    };
+    localStorage.setItem(STORE_KEY, JSON.stringify(toSave));
+  } catch(e){ console.warn('Could not save data:', e); }
+}
+
+// ═══ STATE ═══
+const _loaded = loadState();
+const S = {
+  ..._loaded,
+  // Runtime-only (not persisted)
+  activeDebId:null, activeCrId:null, activeInvId:null, activeStockId:null,
+  adminMode:false, ADMIN_PW:'admin123',
+  curPage:'dashboard',
+};
+
+// ═══ HELPERS ═══
+const G=v=>'GH₵'+parseFloat(v||0).toFixed(2);
+const td=()=>new Date().toISOString().split('T')[0];
+const gi=id=>document.getElementById(id);
+const gv=id=>gi(id).value.trim();
+const gf=id=>parseFloat(gi(id).value)||0;
+const gn=id=>parseInt(gi(id).value)||0;
+const iT=inv=>inv.items.reduce((s,i)=>s+i.price*i.qty,0);
+const iB=inv=>Math.max(0,iT(inv)-inv.paid);
+const iC=inv=>inv.items.reduce((s,i)=>s+i.cost*i.qty,0);
+const isMobile=()=>window.innerWidth<700;
+
+function spill(inv){
+  const b=iB(inv);
+  if(b===0)return'<span class="pill p-blk">Paid</span>';
+  if(inv.paid>0)return'<span class="pill p-wrn">Partial</span>';
+  return'<span class="pill p-red">Unpaid</span>';
+}
+function stPill(i){
+  if(i.qty===0)return'<span class="pill p-red">Out</span>';
+  if(i.qty<=i.reorder)return'<span class="pill p-wrn">Low</span>';
+  return'<span class="pill p-blk">OK</span>';
+}
+
+// ═══ ADMIN ═══
+function toggleAdmin(){
+  if(S.adminMode){
+    S.adminMode=false;document.body.classList.remove('admin-mode');
+    gi('adminBtn').classList.remove('on');gi('adminBtn').textContent='🔐 Admin';
+    rInv();return;
+  }
+  gi('admpw').value='';gi('adm-err').style.display='none';openModal('m-admin');
+}
+function doLogin(){
+  if(gi('admpw').value===S.ADMIN_PW){
+    S.adminMode=true;document.body.classList.add('admin-mode');
+    gi('adminBtn').classList.add('on');gi('adminBtn').textContent='✓ Admin';
+    closeModal('m-admin');rInv();
+  }else gi('adm-err').style.display='flex';
+}
+
+// ═══ NAV ═══
+const FAB_MAP={stock:'openAddStock()',invoices:'openNewInv()',debtors:"openModal('m-adddeb')",creditors:"openModal('m-addcred')"};
+function nav(name){
+  S.curPage=name;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni,.bni').forEach(n=>n.classList.remove('active'));
+  gi('page-'+name).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>{if(n.textContent.toLowerCase().includes(name.slice(0,5)))n.classList.add('active');});
+  document.querySelectorAll('.bni').forEach(n=>{if(n.textContent.toLowerCase().includes(name.slice(0,4)))n.classList.add('active');});
+  // FAB
+  const fab=gi('fab');
+  if(FAB_MAP[name]&&isMobile()){fab.style.display='flex';fab.onclick=new Function(FAB_MAP[name]);}
+  else fab.style.display='none';
+  // Desktop add buttons
+  ['desk-add-stock','desk-add-inv','desk-add-deb','desk-add-cred'].forEach(id=>{const el=gi(id);if(el)el.style.display='none';});
+  const dmap={stock:'desk-add-stock',invoices:'desk-add-inv',debtors:'desk-add-deb',creditors:'desk-add-cred'};
+  if(dmap[name]&&!isMobile()){const el=gi(dmap[name]);if(el)el.style.display='inline-flex';}
+  ({dashboard:rDash,stock:rStock,invoices:rInv,debtors:rDeb,creditors:rCred,profit:rProfit,balance:rBalance}[name]||function(){})();
+  badge();window.scrollTo(0,0);
+}
+function badge(){
+  const c=S.debtors.filter(d=>d.amount>0).length;
+  gi('dbadge').textContent=c;gi('bnbadge').textContent=c;
+  gi('bnbadge').style.display=c>0?'block':'none';
+}
+function openModal(id){gi(id).classList.add('open');}
+function closeModal(id){gi(id).classList.remove('open');}
+document.querySelectorAll('.mbg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+window.addEventListener('resize',()=>{nav(S.curPage);});
+
+// ═══ DASHBOARD ═══
+function rDash(){
+  const units=S.stock.reduce((s,i)=>s+i.qty,0);
+  const debt=S.debtors.reduce((s,d)=>s+d.amount,0);
+  const cred=S.creditors.reduce((s,c)=>s+c.amount,0);
+  gi('d-stats').innerHTML=`
+    <div class="sc dk"><div class="sc-lbl">Stock</div><div class="sc-val">${units}</div><div class="sc-sub">${S.stock.length} products</div></div>
+    <div class="sc"><div class="sc-lbl">Debtors</div><div class="sc-val">${G(debt)}</div><div class="sc-sub">${S.debtors.filter(d=>d.amount>0).length} clients</div></div>
+    <div class="sc"><div class="sc-lbl">Creditors</div><div class="sc-val">${G(cred)}</div><div class="sc-sub">${S.creditors.length} suppliers</div></div>`;
+  const lows=S.stock.filter(i=>i.qty<=i.reorder);
+  gi('d-low').innerHTML=lows.length
+    ?lows.map(i=>`<div class="cl-card"><div class="cl-top"><span class="cl-name">${i.name}</span><span class="pill p-wrn">${i.qty} left</span></div><div class="cl-meta"><span>Reorder at ${i.reorder} units</span></div></div>`).join('')
+    :`<div class="cl-card" style="text-align:center;padding:20px"><span style="font-size:20px">✅</span><div style="color:var(--muted);font-size:13px;margin-top:4px">All levels OK</div></div>`;
+  const dbs=S.debtors.filter(d=>d.amount>0);
+  gi('d-deb').innerHTML=dbs.length
+    ?dbs.map(d=>`<div class="cl-card"><div class="cl-top"><span class="cl-name">${d.client}</span><span class="cl-amt" style="color:var(--red)">${G(d.amount)}</span></div><div class="cl-meta"><span>Due: ${d.due||'—'}</span></div></div>`).join('')
+    :`<div class="cl-card" style="text-align:center;padding:20px"><span style="font-size:20px">🎉</span><div style="color:var(--muted);font-size:13px;margin-top:4px">No outstanding debts</div></div>`;
+}
+
+// ═══ STOCK ═══
+function rStock(){
+  const lows=S.stock.filter(i=>i.qty<=i.reorder);
+  gi('s-alerts').innerHTML=lows.map(i=>`<div class="alert a-warn">⚠ <strong>${i.name}</strong> — ${i.qty} units left (reorder at ${i.reorder})</div>`).join('');
+  gi('s-cnt').textContent=S.stock.length+' products';
+  // Mobile cards
+  gi('s-cards').innerHTML=S.stock.map(item=>{
+    const m=item.price>0?((item.price-item.cost)/item.price*100).toFixed(0):0;
+    const pct=Math.min(100,(item.qty/Math.max(item.reorder*2,1))*100);
+    return`<div class="cl-card">
+      <div class="cl-top">
+        <div>
+          <div class="cl-name">${item.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${item.cat}</div>
+        </div>
+        ${stPill(item)}
+      </div>
+      <div class="prog"><div class="prog-f" style="width:${pct}%"></div></div>
+      <div class="cl-meta" style="margin-top:8px">
+        <span>Cost: <strong class="mono">${G(item.cost)}</strong></span>
+        <span>Sell: <strong class="mono">${G(item.price)}</strong></span>
+        <span>Margin: <strong>${m}%</strong></span>
+        <span>Stock: <strong class="mono">${item.qty}</strong></span>
+        <span>Reorder: ${item.reorder}</span>
+      </div>
+      <div class="cl-actions" style="margin-top:10px">
+        <button class="btn b-out b-xs" onclick="openRestock(${item.id})">Restock</button>
+        <button class="btn b-red b-xs" onclick="delStock(${item.id})">Remove</button>
+      </div></div>`;
+  }).join('')||`<div class="empty"><div class="ei">📦</div>No products yet. Tap + to add.</div>`;
+  // Desktop table
+  gi('s-body').innerHTML=S.stock.map(item=>{
+    const m=item.price>0?((item.price-item.cost)/item.price*100).toFixed(0):0;
+    const pct=Math.min(100,(item.qty/Math.max(item.reorder*2,1))*100);
+    return`<tr>
+      <td><strong>${item.name}</strong></td>
+      <td style="font-size:11px;color:var(--muted)">${item.cat}</td>
+      <td class="mono">${G(item.cost)}</td>
+      <td class="mono">${G(item.price)}<div style="font-size:10px;color:var(--muted)">${m}%</div></td>
+      <td><span class="mono">${item.qty}</span><div class="prog"><div class="prog-f" style="width:${pct}%"></div></div></td>
+      <td class="mono">${item.reorder}</td>
+      <td>${stPill(item)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn b-out b-xs" onclick="openRestock(${item.id})">Restock</button>
+        <button class="btn b-red b-xs" style="margin-left:4px" onclick="delStock(${item.id})">✕</button>
+      </td></tr>`;
+  }).join('')||`<tr><td colspan="8"><div class="empty">No products yet</div></td></tr>`;
+}
+function openAddStock(){
+  gi('s-eid').value='';
+  gi('m-stock-ttl').childNodes[0].textContent='Add Product ';
+  gi('m-stock-btn').textContent='Add Product';
+  ['s-name','s-cost','s-price','s-qty','s-reorder'].forEach(id=>gi(id).value='');
+  gi('s-cat').selectedIndex=0;openModal('m-stock');
+}
+function saveStock(){
+  const eid=gi('s-eid').value;
+  const name=gv('s-name');if(!name)return alert('Enter product name');
+  const obj={name,cat:gv('s-cat'),cost:gf('s-cost'),price:gf('s-price'),qty:gn('s-qty'),reorder:gn('s-reorder')||10};
+  if(eid){const item=S.stock.find(s=>s.id==eid);if(item)Object.assign(item,obj);}
+  else S.stock.push({id:S.uid++,...obj});
+  persist();closeModal('m-stock');rStock();
+}
+function delStock(id){if(confirm('Remove this product?')){S.stock=S.stock.filter(s=>s.id!==id);persist();rStock();}}
+function openRestock(id){
+  const item=S.stock.find(s=>s.id===id);if(!item)return;
+  S.activeStockId=id;
+  gi('rs-id').value=id;gi('rs-name').value=item.name;gi('rs-cat').value=item.cat;
+  gi('rs-cost').value=G(item.cost);gi('rs-price').value=G(item.price);
+  gi('rs-rlvl').value=item.reorder+' units';gi('rs-cur').value=item.qty+' units';
+  gi('rs-qty').value='';gi('rs-preview').style.display='none';openModal('m-restock');
+}
+function previewRestock(){
+  const item=S.stock.find(s=>s.id===S.activeStockId);if(!item)return;
+  const q=parseInt(gi('rs-qty').value)||0,el=gi('rs-preview');
+  if(q>0){el.style.display='flex';el.textContent=`New total: ${item.qty} + ${q} = ${item.qty+q} units`;}
+  else el.style.display='none';
+}
+function doRestock(){
+  const item=S.stock.find(s=>s.id===S.activeStockId);if(!item)return;
+  const q=gn('rs-qty');if(q<=0)return alert('Enter a valid quantity');
+  item.qty+=q;persist();closeModal('m-restock');rStock();
+}
+
+// ═══ INVOICES ═══
+function rInv(){
+  // Mobile cards
+  gi('inv-cards').innerHTML=S.invoices.map(inv=>{
+    const tot=iT(inv),bal=iB(inv);
+    return`<div class="cl-card">
+      <div class="cl-top">
+        <div>
+          <div class="cl-name tap" onclick="viewInv('${inv.id}')">${inv.client}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${inv.id} · ${inv.date}</div>
+        </div>
+        ${spill(inv)}
+      </div>
+      <div class="cl-meta" style="margin-top:6px">
+        <span>Total: <strong class="mono">${G(tot)}</strong></span>
+        <span>Paid: <strong class="mono">${G(inv.paid)}</strong></span>
+        <span style="color:${bal>0?'var(--red)':'var(--muted)'}">Balance: <strong class="mono">${G(bal)}</strong></span>
+      </div>
+      <div class="cl-actions" style="margin-top:10px">
+        <button class="btn b-gst b-xs" onclick="viewInv('${inv.id}')">View</button>
+        ${bal>0?`<button class="btn b-out b-xs" onclick="openPayInv('${inv.id}')">Pay</button>`:''}
+        <button class="btn b-gst b-xs admin-only" onclick="editInv('${inv.id}')">Edit</button>
+        <button class="btn b-red b-xs admin-only" onclick="delInv('${inv.id}')">Delete</button>
+      </div></div>`;
+  }).join('')||`<div class="empty"><div class="ei">🧾</div>No invoices yet. Tap + to create one.</div>`;
+  // Desktop table
+  gi('inv-body').innerHTML=S.invoices.map(inv=>{
+    const tot=iT(inv),bal=iB(inv);
+    return`<tr>
+      <td class="mono" style="font-weight:700;cursor:pointer" onclick="viewInv('${inv.id}')">${inv.id}</td>
+      <td>${inv.client}</td>
+      <td style="font-size:11px;color:var(--muted)">${inv.date}</td>
+      <td class="mono">${G(tot)}</td>
+      <td class="mono">${G(inv.paid)}</td>
+      <td class="mono" style="font-weight:700;color:${bal>0?'var(--red)':'var(--muted)'}">${G(bal)}</td>
+      <td>${spill(inv)}</td>
+      <td style="white-space:nowrap;display:flex;gap:4px">
+        <button class="btn b-gst b-xs" onclick="viewInv('${inv.id}')">View</button>
+        ${bal>0?`<button class="btn b-out b-xs" onclick="openPayInv('${inv.id}')">Pay</button>`:''}
+        <button class="btn b-gst b-xs admin-only" onclick="editInv('${inv.id}')">Edit</button>
+        <button class="btn b-red b-xs admin-only" onclick="delInv('${inv.id}')">Del</button>
+      </td></tr>`;
+  }).join('')||`<tr><td colspan="8"><div class="empty">No invoices yet</div></td></tr>`;
+}
+let iic=0;
+function openNewInv(){
+  gi('i-eid').value='';gi('m-inv-ttl').childNodes[0].textContent='New Invoice ';
+  gi('m-inv-btn').textContent='Create Invoice';
+  initInvForm(null);openModal('m-invoice');
+}
+function editInv(id){
+  if(!S.adminMode)return;
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  gi('i-eid').value=id;gi('m-inv-ttl').childNodes[0].textContent='Edit Invoice ';
+  gi('m-inv-btn').textContent='Save Changes';
+  initInvForm(inv);openModal('m-invoice');
+}
+function delInv(id){
+  if(!S.adminMode)return;
+  if(!confirm(`Delete ${id}? Cannot be undone.`))return;
+  S.invoices=S.invoices.filter(i=>i.id!==id);persist();rInv();
+}
+function initInvForm(inv){
+  iic=0;gi('i-items').innerHTML='';
+  gi('i-date').value=inv?inv.date:td();
+  gi('i-client').value=inv?inv.client:'';gi('i-phone').value=inv?inv.phone:'';
+  gi('i-paid').value=inv?inv.paid:'';
+  gi('i-sub').textContent='GH₵0.00';gi('i-total').textContent='GH₵0.00';gi('i-bal').textContent='GH₵0.00';
+  gi('i-debnote').style.display='none';
+  if(inv){
+    inv.items.forEach(()=>addInvItem());
+    setTimeout(()=>{
+      const rows=document.querySelectorAll('#i-items>div');
+      inv.items.forEach((item,idx)=>{
+        if(!rows[idx])return;
+        const sel=rows[idx].querySelector('select'),qi=rows[idx].querySelector('input[type="number"]');
+        if(sel){for(let o of sel.options){if(o.text.startsWith(item.product)){o.selected=true;break;}}}
+        if(qi)qi.value=item.qty;
+      });
+      calcInv();
+    },60);
+  }else addInvItem();
+}
+function addInvItem(){
+  const idx=iic++;
+  const opts=S.stock.map(s=>`<option value="${s.id}" data-price="${s.price}" data-cost="${s.cost}">${s.name} — ${G(s.price)}</option>`).join('');
+  const d=document.createElement('div');d.id=`ii${idx}`;d.className='inv-row';
+  d.innerHTML=`<select onchange="calcInv()" style="padding:13px 10px;border:1.5px solid var(--bdr);border-radius:10px;font-size:15px;background:var(--bg);font-family:inherit;outline:none;-webkit-appearance:none;width:100%">${opts}</select>
+    <input type="number" inputmode="numeric" value="1" min="1" oninput="calcInv()" style="padding:13px 6px;border:1.5px solid var(--bdr);border-radius:10px;font-size:15px;text-align:center;font-family:'Source Code Pro',monospace;outline:none;width:100%;background:var(--bg)">
+    <button class="btn b-red b-xs" style="padding:12px 13px" onclick="rmInvItem(${idx})">✕</button>`;
+  gi('i-items').appendChild(d);calcInv();
+}
+function rmInvItem(idx){const e=gi(`ii${idx}`);if(e)e.remove();calcInv();}
+function calcInv(){
+  let tot=0;
+  document.querySelectorAll('#i-items>div').forEach(row=>{
+    const sel=row.querySelector('select'),qi=row.querySelector('input[type="number"]');
+    if(sel&&qi){const o=sel.options[sel.selectedIndex];tot+=parseFloat(o.dataset.price||0)*parseInt(qi.value||0);}
+  });
+  gi('i-sub').textContent=G(tot);gi('i-total').textContent=G(tot);calcBal();
+}
+function calcBal(){
+  const tot=parseFloat(gi('i-total').textContent.replace('GH₵',''))||0;
+  const paid=gf('i-paid'),bal=Math.max(0,tot-paid);
+  gi('i-bal').textContent=G(bal);
+  gi('i-debnote').style.display=bal>0?'flex':'none';
+}
+function saveInv(){
+  const eid=gi('i-eid').value;
+  const client=gv('i-client');if(!client)return alert('Enter client name');
+  const phone=gv('i-phone'),date=gv('i-date')||td(),paid=gf('i-paid');
+  const items=[];
+  document.querySelectorAll('#i-items>div').forEach(row=>{
+    const sel=row.querySelector('select'),qi=row.querySelector('input[type="number"]');
+    if(sel&&qi){const o=sel.options[sel.selectedIndex];const st=S.stock.find(s=>s.id==o.value);const qty=parseInt(qi.value)||0;
+      if(st&&qty>0){items.push({product:st.name,cost:st.cost,price:st.price,qty});if(!eid)st.qty=Math.max(0,st.qty-qty);}
+    }
+  });
+  if(!items.length)return alert('Add at least one item');
+  if(eid){const inv=S.invoices.find(i=>i.id===eid);if(inv){inv.client=client;inv.phone=phone;inv.date=date;inv.items=items;inv.paid=paid;}}
+  else{
+    const id='INV-'+String(S.invoices.length+1).padStart(3,'0');
+    const inv={id,client,phone,date,items,paid};S.invoices.push(inv);
+    const bal=iB(inv);
+    if(bal>0){
+      const ex=S.debtors.find(d=>d.client.toLowerCase()===client.toLowerCase());
+      if(ex){ex.amount+=bal;ex.lastInv=id;}
+      else S.debtors.push({id:S.uid++,client,phone,amount:bal,lastInv:id,due:'',notes:`Balance from ${id}`});
+    }
+  }
+  persist();closeModal('m-invoice');rInv();badge();
+}
+function viewInv(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  const tot=iT(inv),bal=iB(inv);
+  gi('inv-preview').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--blk);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:6px">
+      <div><div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900">SipHouse</div><div style="font-size:12px;color:var(--muted)">Drink Shop</div></div>
+      <div style="text-align:right"><div class="mono" style="font-size:18px;font-weight:700">${inv.id}</div><div style="font-size:12px;color:var(--muted)">${inv.date}</div>${spill(inv)}</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Bill To</div>
+      <div style="font-weight:700;font-size:16px">${inv.client}</div><div style="font-size:13px;color:var(--muted)">${inv.phone||''}</div>
+    </div>
+    <div style="border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:14px">
+      ${inv.items.map((i,idx)=>`<div style="display:flex;justify-content:space-between;padding:10px 14px;${idx<inv.items.length-1?'border-bottom:1px solid var(--bdr)':''}">
+        <div><div style="font-weight:600">${i.product}</div><div style="font-size:12px;color:var(--muted)">×${i.qty} @ ${G(i.price)}</div></div>
+        <div class="mono" style="font-weight:700">${G(i.price*i.qty)}</div></div>`).join('')}
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:14px">
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px"><span style="color:var(--muted)">Subtotal</span><span class="mono">${G(tot)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:10px"><span style="color:var(--muted)">Amount Paid</span><span class="mono">${G(inv.paid)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:900;border-top:2px solid var(--blk);padding-top:10px"><span>Balance Due</span><span class="mono" style="color:${bal>0?'var(--red)':'var(--grn)'}">${G(bal)}</span></div>
+    </div>
+    ${bal>0?`<div class="alert a-warn" style="margin-top:14px">⚠ Balance of ${G(bal)} posted to <strong>${inv.client}</strong>'s debtor account.</div>`:''}`;
+  openModal('m-viewinv');
+}
+function openPayInv(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  S.activeInvId=id;
+  gi('pi-id').value=id;gi('pi-client').value=inv.client;gi('pi-ref').value=inv.id;
+  gi('pi-date').value=inv.date;gi('pi-phone').value=inv.phone||'—';
+  gi('pi-total').textContent=G(iT(inv));gi('pi-paid').textContent=G(inv.paid);gi('pi-bal').textContent=G(iB(inv));
+  gi('pi-amt').value='';gi('pi-preview').style.display='none';
+  gi('pi-items').innerHTML=inv.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:14px"><span>${i.product} <span style="color:var(--muted);font-size:12px">×${i.qty}</span></span><span class="mono">${G(i.price*i.qty)}</span></div>`).join('');
+  openModal('m-payinv');
+}
+function previewPayInv(){
+  const inv=S.invoices.find(i=>i.id===S.activeInvId);if(!inv)return;
+  const bal=iB(inv),amt=gf('pi-amt'),rem=Math.max(0,bal-amt),el=gi('pi-preview');
+  if(amt>0){el.style.display='flex';el.textContent=rem>0?`Remaining balance: ${G(rem)}`:`✓ Balance fully cleared`;}
+  else el.style.display='none';
+}
+function payAllInv(){const inv=S.invoices.find(i=>i.id===S.activeInvId);if(!inv)return;gi('pi-amt').value=iB(inv).toFixed(2);previewPayInv();}
+function confirmPayInv(){
+  const inv=S.invoices.find(i=>i.id===S.activeInvId);if(!inv)return;
+  const amt=gf('pi-amt');if(amt<=0)return alert('Enter a valid amount');
+  const applied=Math.min(amt,iB(inv));inv.paid+=applied;
+  const d=S.debtors.find(d=>d.client.toLowerCase()===inv.client.toLowerCase());
+  if(d){d.amount=Math.max(0,d.amount-applied);S.payments.push({debId:d.id,date:td(),amount:applied,note:`Payment for ${inv.id}`});}
+  persist();closeModal('m-payinv');rInv();rDeb();badge();
+}
+
+// ═══ DEBTORS ═══
+function rDeb(){
+  const tot=S.debtors.reduce((s,d)=>s+d.amount,0);
+  const ov=S.debtors.filter(d=>d.due&&new Date(d.due)<new Date()&&d.amount>0).length;
+  gi('deb-stats').innerHTML=`
+    <div class="sc dk"><div class="sc-lbl">Outstanding</div><div class="sc-val">${G(tot)}</div></div>
+    <div class="sc"><div class="sc-lbl">Active</div><div class="sc-val">${S.debtors.filter(d=>d.amount>0).length}</div><div class="sc-sub">debtors</div></div>
+    <div class="sc"><div class="sc-lbl">Overdue</div><div class="sc-val">${ov}</div></div>`;
+  // Mobile cards
+  gi('deb-cards').innerHTML=S.debtors.length
+    ?S.debtors.map(d=>{
+        const ov=d.due&&new Date(d.due)<new Date()&&d.amount>0;
+        return`<div class="cl-card">
+          <div class="cl-top">
+            <div>
+              <span class="cl-name tap" onclick="showDebHist(${d.id})">${d.client}</span>
+              ${d.amount>0?'<span class="pill p-red" style="font-size:10px;margin-left:6px">OWES</span>':'<span class="pill p-blk" style="font-size:10px;margin-left:6px">CLEAR</span>'}
+            </div>
+            <span class="cl-amt" style="color:${d.amount>0?'var(--red)':'var(--muted)'}">${G(d.amount)}</span>
+          </div>
+          <div class="cl-meta" style="margin-top:6px">
+            <span>${d.phone||'No phone'}</span>
+            <span>Ref: ${d.lastInv||'—'}</span>
+            <span style="color:${ov?'var(--red)':'inherit'}">Due: ${d.due||'—'}${ov?' ⚠':''}</span>
+          </div>
+          <div class="cl-actions" style="margin-top:10px">
+            ${d.amount>0?`<button class="btn b-out b-xs" onclick="openPayDeb(${d.id})">Pay</button>`:''}
+            <button class="btn b-gst b-xs" onclick="showDebHist(${d.id})">History</button>
+            <button class="btn b-red b-xs" onclick="delDeb(${d.id})">Remove</button>
+          </div></div>`;
+      }).join('')
+    :`<div class="empty"><div class="ei">🎉</div>No debtors — all clear!</div>`;
+  // Desktop table
+  gi('deb-body').innerHTML=S.debtors.length
+    ?S.debtors.map(d=>{
+        const ov=d.due&&new Date(d.due)<new Date()&&d.amount>0;
+        return`<tr>
+          <td><span class="clink" onclick="showDebHist(${d.id})">${d.client}</span> ${d.amount>0?'<span class="pill p-red" style="font-size:9px">OWES</span>':'<span class="pill p-blk" style="font-size:9px">CLEAR</span>'}</td>
+          <td style="font-size:12px">${d.phone||'—'}</td>
+          <td class="mono" style="font-weight:700;color:${d.amount>0?'var(--red)':'var(--muted)'}">${G(d.amount)}</td>
+          <td style="font-size:11px;color:var(--muted)">${d.lastInv||'—'}</td>
+          <td style="font-size:11px;color:${ov?'var(--red)':'var(--muted)'}">${d.due||'—'}${ov?' ⚠':''}</td>
+          <td>${d.amount>0?(ov?'<span class="pill p-red">Overdue</span>':'<span class="pill p-wrn">Pending</span>'):'<span class="pill p-blk">Cleared</span>'}</td>
+          <td style="white-space:nowrap;display:flex;gap:4px">
+            ${d.amount>0?`<button class="btn b-out b-xs" onclick="openPayDeb(${d.id})">Pay</button>`:''}
+            <button class="btn b-red b-xs" onclick="delDeb(${d.id})">✕</button>
+          </td></tr>`;
+      }).join('')
+    :`<tr><td colspan="7"><div class="empty">No debtors</div></td></tr>`;
+}
+function showDebHist(id){
+  const d=S.debtors.find(x=>x.id===id);if(!d)return;
+  gi('dh-title').childNodes[0].textContent=d.client+' ';
+  const invs=S.invoices.filter(i=>i.client.toLowerCase()===d.client.toLowerCase());
+  const pmts=S.payments.filter(p=>p.debId===id);
+  let html=`<div class="ibox">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:flex-start">
+      <div>
+        <div style="font-weight:700;font-size:16px">${d.client}</div>
+        <div style="font-size:13px;color:var(--muted)">${d.phone||'No phone'}</div>
+        ${d.notes?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${d.notes}</div>`:''}
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Amount Owed</div>
+        <div class="mono" style="font-size:24px;font-weight:900;color:${d.amount>0?'var(--red)':'var(--grn)'}">${G(d.amount)}</div>
+        ${d.amount>0?`<button class="btn b-out b-xs" style="margin-top:8px" onclick="closeModal('m-debhist');openPayDeb(${d.id})">Pay Now</button>`:'<span class="pill p-blk" style="margin-top:6px;display:inline-block">All Clear ✓</span>'}
+      </div>
+    </div></div>`;
+  if(invs.length){
+    html+=`<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px">Invoices (${invs.length})</div>`;
+    html+=invs.slice().reverse().map(inv=>`<div class="hist-item">
+      <div class="hist-date">${inv.date}</div>
+      <div class="hist-row"><span style="font-weight:700;font-size:15px">${inv.id}</span>${spill(inv)}</div>
+      <div style="margin-top:6px;font-size:13px;color:var(--muted)">${inv.items.map(i=>i.product+' ×'+i.qty).join(', ')}</div>
+      <div class="hist-row" style="margin-top:6px;font-size:13px">
+        <span style="color:var(--muted)">Paid: ${G(inv.paid)}</span>
+        <span style="color:${iB(inv)>0?'var(--red)':'var(--grn)'};font-weight:700">Balance: ${G(iB(inv))}</span>
+      </div></div>`).join('');
+  }
+  if(pmts.length){
+    html+=`<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 10px">Payments (${pmts.length})</div>`;
+    html+=pmts.slice().reverse().map(p=>`<div class="hist-item">
+      <div class="hist-date">${p.date}</div>
+      <div class="hist-row"><span>${p.note||'Payment'}</span><span class="mono" style="font-weight:700;color:var(--grn)">+${G(p.amount)}</span></div></div>`).join('');
+  }
+  if(!invs.length&&!pmts.length)html+='<div class="empty">No history found</div>';
+  gi('dh-content').innerHTML=html;openModal('m-debhist');
+}
+function addDebtor(){
+  const name=gv('dn-name');if(!name)return alert('Enter client name');
+  S.debtors.push({id:S.uid++,client:name,phone:gv('dn-phone'),amount:gf('dn-amt'),lastInv:'Manual',due:gv('dn-due'),notes:gv('dn-notes')});
+  closeModal('m-adddeb');['dn-name','dn-phone','dn-amt','dn-due','dn-notes'].forEach(id=>gi(id).value='');
+  persist();rDeb();badge();
+}
+function openPayDeb(id){
+  const d=S.debtors.find(x=>x.id===id);if(!d)return;
+  S.activeDebId=id;
+  gi('pd-client').value=d.client;gi('pd-phone').value=d.phone||'—';
+  gi('pd-notes').value=d.notes||d.lastInv||'—';
+  gi('pd-owed').textContent=G(d.amount);
+  gi('pd-amt').value='';gi('pd-preview').style.display='none';openModal('m-paydeb');
+}
+function previewPayDeb(){
+  const d=S.debtors.find(x=>x.id===S.activeDebId);if(!d)return;
+  const amt=gf('pd-amt'),rem=Math.max(0,d.amount-amt),el=gi('pd-preview');
+  if(amt>0){el.style.display='flex';el.textContent=rem>0?`Remaining: ${G(rem)}`:`✓ Full debt cleared`;}
+  else el.style.display='none';
+}
+function payAllDeb(){const d=S.debtors.find(x=>x.id===S.activeDebId);if(!d)return;gi('pd-amt').value=d.amount.toFixed(2);previewPayDeb();}
+function confirmPayDeb(){
+  const d=S.debtors.find(x=>x.id===S.activeDebId);
+  const amt=gf('pd-amt');if(!d||amt<=0)return alert('Enter a valid amount');
+  const applied=Math.min(amt,d.amount);
+  d.amount=Math.max(0,d.amount-applied);
+  S.payments.push({debId:d.id,date:td(),amount:applied,note:'Direct payment'});
+  if(d.lastInv){const inv=S.invoices.find(i=>i.id===d.lastInv);if(inv)inv.paid=Math.min(iT(inv),inv.paid+applied);}
+  persist();closeModal('m-paydeb');rDeb();rInv();badge();
+}
+function delDeb(id){if(confirm('Remove this debtor?')){S.debtors=S.debtors.filter(d=>d.id!==id);persist();rDeb();badge();}}
+
+// ═══ CREDITORS ═══
+function calcCred(){gi('cr-calc').textContent=G(gf('cr-qty')*gf('cr-rate'));}
+function calcSup(){gi('sup-calc').textContent=G(gf('sup-qty')*gf('sup-rate'));}
+function rCred(){
+  const tot=S.creditors.reduce((s,c)=>s+c.amount,0);
+  const ov=S.creditors.filter(c=>c.due&&new Date(c.due)<new Date()&&c.amount>0).length;
+  gi('cred-stats').innerHTML=`
+    <div class="sc dk"><div class="sc-lbl">Total Owed</div><div class="sc-val">${G(tot)}</div></div>
+    <div class="sc"><div class="sc-lbl">Suppliers</div><div class="sc-val">${S.creditors.filter(c=>c.amount>0).length}</div></div>
+    <div class="sc"><div class="sc-lbl">Overdue</div><div class="sc-val">${ov}</div></div>`;
+  // Mobile cards
+  gi('cred-cards').innerHTML=S.creditors.length
+    ?S.creditors.map(c=>{
+        const ov=c.due&&new Date(c.due)<new Date()&&c.amount>0;
+        const sc=(c.supplies||[]).length;
+        return`<div class="cl-card">
+          <div class="cl-top">
+            <div>
+              <span class="cl-name tap" onclick="showCredHist(${c.id})">${c.supplier}</span>
+              ${c.amount>0?(ov?'<span class="pill p-red" style="font-size:10px;margin-left:6px">OVERDUE</span>':'<span class="pill p-wrn" style="font-size:10px;margin-left:6px">PENDING</span>'):'<span class="pill p-blk" style="font-size:10px;margin-left:6px">PAID</span>'}
+            </div>
+            <span class="cl-amt" style="color:${c.amount>0?'var(--red)':'var(--muted)'}">${G(c.amount)}</span>
+          </div>
+          <div class="cl-meta" style="margin-top:6px">
+            <span>${c.phone||'No phone'}</span>
+            <span>${sc} supply record${sc!==1?'s':''}</span>
+            <span style="color:${ov?'var(--red)':'inherit'}">Due: ${c.due||'—'}${ov?' ⚠':''}</span>
+          </div>
+          ${c.notes?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${c.notes}</div>`:''}
+          <div class="cl-actions" style="margin-top:10px">
+            ${c.amount>0?`<button class="btn b-out b-xs" onclick="openPayCred(${c.id})">Pay</button>`:''}
+            <button class="btn b-gst b-xs" onclick="openSupply(${c.id})">+ Supply</button>
+            <button class="btn b-gst b-xs" onclick="showCredHist(${c.id})">History</button>
+            <button class="btn b-red b-xs" onclick="delCred(${c.id})">Remove</button>
+          </div></div>`;
+      }).join('')
+    :`<div class="empty"><div class="ei">✅</div>No creditors added yet. Tap + to add.</div>`;
+  // Desktop table
+  gi('cred-body').innerHTML=S.creditors.length
+    ?S.creditors.map(c=>{
+        const ov=c.due&&new Date(c.due)<new Date()&&c.amount>0;
+        const sc=(c.supplies||[]).length;
+        return`<tr>
+          <td><span class="clink" onclick="showCredHist(${c.id})">${c.supplier}</span>${c.notes?`<div style="font-size:11px;color:var(--muted)">${c.notes}</div>`:''}<div style="font-size:11px;color:var(--muted)">${sc} records</div></td>
+          <td style="font-size:12px">${c.phone||'—'}</td>
+          <td class="mono" style="font-weight:700;color:${c.amount>0?'var(--red)':'var(--muted)'}">${G(c.amount)}</td>
+          <td style="font-size:11px;color:var(--muted)">${c.lastSupply||'—'}</td>
+          <td style="font-size:11px;color:${ov?'var(--red)':'var(--muted)'}">${c.due||'—'}${ov?' ⚠':''}</td>
+          <td>${c.amount>0?(ov?'<span class="pill p-red">Overdue</span>':'<span class="pill p-wrn">Pending</span>'):'<span class="pill p-blk">Cleared</span>'}</td>
+          <td style="white-space:nowrap;display:flex;gap:4px;flex-wrap:wrap">
+            ${c.amount>0?`<button class="btn b-out b-xs" onclick="openPayCred(${c.id})">Pay</button>`:''}
+            <button class="btn b-gst b-xs" onclick="openSupply(${c.id})">+ Supply</button>
+            <button class="btn b-red b-xs" onclick="delCred(${c.id})">✕</button>
+          </td></tr>`;
+      }).join('')
+    :`<tr><td colspan="7"><div class="empty">No creditors</div></td></tr>`;
+}
+function showCredHist(id){
+  const c=S.creditors.find(x=>x.id===id);if(!c)return;
+  gi('ch-title').childNodes[0].textContent=c.supplier+' ';
+  const logs=c.supplies||[];const total=logs.reduce((s,l)=>s+l.amount,0);
+  let html=`<div class="ibox">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:flex-start">
+      <div>
+        <div style="font-weight:700;font-size:16px">${c.supplier}</div>
+        <div style="font-size:13px;color:var(--muted)">${c.phone||'No phone'}</div>
+        ${c.notes?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${c.notes}</div>`:''}
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Last supply: ${c.lastSupply||'—'} · Due: ${c.due||'—'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Amount Owed</div>
+        <div class="mono" style="font-size:24px;font-weight:900;color:${c.amount>0?'var(--red)':'var(--grn)'}">${G(c.amount)}</div>
+        ${c.amount>0?`<button class="btn b-out b-xs" style="margin-top:8px" onclick="closeModal('m-credhist');openPayCred(${c.id})">Pay Now</button>`:'<span class="pill p-blk" style="margin-top:6px;display:inline-block">Paid Up ✓</span>'}
+      </div>
+    </div></div>`;
+  if(logs.length){
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700">${logs.length} Record${logs.length!==1?'s':''}</div>
+      <div style="font-size:13px;color:var(--muted)">Total: <span class="mono" style="font-weight:700">${G(total)}</span></div></div>`;
+    html+=logs.slice().reverse().map(s=>`<div class="hist-item">
+      <div class="hist-date">${s.date}</div>
+      <div class="hist-row"><span style="font-weight:700">${s.product}</span><span class="mono" style="font-weight:700">${G(s.amount)}</span></div>
+      <div style="margin-top:5px;font-size:13px;color:var(--muted)">Qty: ${s.qty} × ${G(s.rate)} each${s.notes?` · ${s.notes}`:''}</div>
+    </div>`).join('');
+  }else html+='<div class="empty">No supply records yet</div>';
+  gi('ch-content').innerHTML=html;openModal('m-credhist');
+}
+function addCreditor(){
+  const supplier=gv('cr-name');if(!supplier)return alert('Enter supplier name');
+  const qty=gf('cr-qty'),rate=gf('cr-rate'),amount=qty*rate;
+  if(amount<=0)return alert('Enter quantity and rate');
+  const product=gv('cr-prod')||'—';
+  S.creditors.push({id:S.uid++,supplier,phone:gv('cr-phone'),amount,lastSupply:td(),due:gv('cr-due'),notes:gv('cr-notes'),
+    supplies:[{date:td(),product,qty,rate,amount,notes:''}]});
+  closeModal('m-addcred');['cr-name','cr-phone','cr-prod','cr-qty','cr-rate','cr-due','cr-notes'].forEach(id=>gi(id).value='');
+  gi('cr-calc').textContent='GH₵0.00';persist();rCred();
+}
+function openPayCred(id){
+  S.activeCrId=id;const c=S.creditors.find(x=>x.id===id);
+  gi('pc-supplier').value=c.supplier;gi('pc-phone').value=c.phone||'—';
+  gi('pc-owed').textContent=G(c.amount);gi('pc-amt').value='';gi('pc-preview').style.display='none';openModal('m-paycred');
+}
+function previewPayCred(){
+  const c=S.creditors.find(x=>x.id===S.activeCrId);if(!c)return;
+  const amt=gf('pc-amt'),rem=Math.max(0,c.amount-amt),el=gi('pc-preview');
+  if(amt>0){el.style.display='flex';el.textContent=rem>0?`Remaining: ${G(rem)}`:`✓ Full debt cleared`;}
+  else el.style.display='none';
+}
+function payAllCred(){const c=S.creditors.find(x=>x.id===S.activeCrId);if(!c)return;gi('pc-amt').value=c.amount.toFixed(2);previewPayCred();}
+function confirmPayCred(){
+  const c=S.creditors.find(x=>x.id===S.activeCrId);const amt=gf('pc-amt');
+  if(!c||amt<=0)return alert('Enter a valid amount');
+  c.amount=Math.max(0,c.amount-amt);persist();closeModal('m-paycred');rCred();
+}
+function openSupply(id){
+  S.activeCrId=id;const c=S.creditors.find(x=>x.id===id);
+  gi('sup-info').innerHTML=`<strong>${c.supplier}</strong><br><span style="color:var(--muted)">Current balance: </span><span class="mono" style="font-weight:700">${G(c.amount)}</span>`;
+  ['sup-prod','sup-qty','sup-rate','sup-notes'].forEach(id=>gi(id).value='');
+  gi('sup-calc').textContent='GH₵0.00';openModal('m-supply');
+}
+function saveSupply(){
+  const c=S.creditors.find(x=>x.id===S.activeCrId);if(!c)return;
+  const qty=gf('sup-qty'),rate=gf('sup-rate');
+  if(qty<=0||rate<=0)return alert('Enter valid quantity and rate');
+  const amount=qty*rate,product=gv('sup-prod')||'—',notes=gv('sup-notes');
+  c.supplies=c.supplies||[];c.supplies.push({date:td(),product,qty,rate,amount,notes});
+  c.amount+=amount;c.lastSupply=td();persist();closeModal('m-supply');rCred();
+}
+function delCred(id){if(confirm('Remove this creditor?')){S.creditors=S.creditors.filter(c=>c.id!==id);persist();rCred();}}
+
+// ═══ PROFIT ═══
+function rProfit(){
+  const rev=S.invoices.reduce((s,i)=>s+iT(i),0);
+  const cogs=S.invoices.reduce((s,i)=>s+iC(i),0);
+  const gp=rev-cogs,coll=S.invoices.reduce((s,i)=>s+i.paid,0),out=S.invoices.reduce((s,i)=>s+iB(i),0);
+  gi('p-stats').innerHTML=`
+    <div class="sc dk"><div class="sc-lbl">Revenue</div><div class="sc-val">${G(rev)}</div></div>
+    <div class="sc"><div class="sc-lbl">COGS</div><div class="sc-val">${G(cogs)}</div></div>
+    <div class="sc"><div class="sc-lbl">Gross Profit</div><div class="sc-val">${G(gp)}</div><div class="sc-sub">${rev?((gp/rev)*100).toFixed(1):0}%</div></div>
+    <div class="sc"><div class="sc-lbl">Collected</div><div class="sc-val">${G(coll)}</div></div>
+    <div class="sc"><div class="sc-lbl">Outstanding</div><div class="sc-val">${G(out)}</div></div>`;
+  const sales={};
+  S.invoices.forEach(inv=>inv.items.forEach(item=>{
+    if(!sales[item.product])sales[item.product]={units:0,revenue:0,profit:0};
+    sales[item.product].units+=item.qty;sales[item.product].revenue+=item.price*item.qty;
+    sales[item.product].profit+=(item.price-item.cost)*item.qty;
+  }));
+  // Mobile cards
+  gi('p-prod-cards').innerHTML=Object.entries(sales).sort((a,b)=>b[1].profit-a[1].profit)
+    .map(([n,s])=>`<div class="cl-card"><div class="cl-top"><span class="cl-name">${n}</span><span class="cl-amt" style="color:var(--grn)">${G(s.profit)}</span></div><div class="cl-meta"><span>Sold: ${s.units} units</span><span>Revenue: ${G(s.revenue)}</span></div></div>`).join('')
+    ||`<div class="empty">No data</div>`;
+  gi('p-inv-cards').innerHTML=S.invoices.map(inv=>{
+    const r=iT(inv),c=iC(inv),g=r-c,m=r?(g/r*100).toFixed(1):0;
+    return`<div class="cl-card"><div class="cl-top"><span class="cl-name tap" onclick="viewInv('${inv.id}')">${inv.client}</span><span class="pill ${parseFloat(m)>30?'p-blk':parseFloat(m)>15?'p-wrn':'p-red'}">${m}%</span></div><div class="cl-meta"><span>${inv.id}</span><span>Revenue: ${G(r)}</span><span>Profit: <strong>${G(g)}</strong></span></div></div>`;
+  }).join('')||`<div class="empty">No invoices</div>`;
+  // Desktop tables
+  gi('p-prod').innerHTML=Object.entries(sales).sort((a,b)=>b[1].profit-a[1].profit)
+    .map(([n,s])=>`<tr><td>${n}</td><td class="mono">${s.units}</td><td class="mono">${G(s.revenue)}</td><td class="mono" style="font-weight:700">${G(s.profit)}</td></tr>`).join('')
+    ||`<tr><td colspan="4"><div class="empty">No data</div></td></tr>`;
+  gi('p-inv').innerHTML=S.invoices.map(inv=>{
+    const r=iT(inv),c=iC(inv),g=r-c,m=r?(g/r*100).toFixed(1):0;
+    return`<tr><td class="mono" style="font-weight:700;cursor:pointer" onclick="viewInv('${inv.id}')">${inv.id}</td><td>${inv.client}</td><td class="mono">${G(r)}</td><td class="mono" style="font-weight:700">${G(g)}</td><td><span class="pill ${parseFloat(m)>30?'p-blk':parseFloat(m)>15?'p-wrn':'p-red'}">${m}%</span></td></tr>`;
+  }).join('')||`<tr><td colspan="5"><div class="empty">No invoices</div></td></tr>`;
+}
+
+// ═══ BALANCE SHEET ═══
+function rBalance(){gi('bs-cash').value=S.balance.cash||'';gi('bs-bank').value=S.balance.bank||'';calcBS();}
+function calcBS(){
+  S.balance.cash=gf('bs-cash');S.balance.bank=gf('bs-bank');
+  persist();
+  const credList=S.creditors.filter(c=>c.amount>0);
+  const totalLiab=credList.reduce((s,c)=>s+c.amount,0);
+  gi('bs-liab').innerHTML=credList.length
+    ?credList.map(c=>`<div class="bs-row"><span>${c.supplier}</span><span class="mono">${G(c.amount)}</span></div>`).join('')
+    :`<div class="bs-row" style="color:var(--muted)"><span>No creditors</span><span>—</span></div>`;
+  gi('bs-liab-tot').textContent=G(totalLiab);
+  const debList=S.debtors.filter(d=>d.amount>0);
+  const stockVal=S.stock.reduce((s,i)=>s+(i.cost*i.qty),0);
+  const totalDeb=debList.reduce((s,d)=>s+d.amount,0);
+  const cash=S.balance.cash,bank=S.balance.bank;
+  const totalAssets=totalDeb+stockVal+cash+bank;
+  gi('bs-assets').innerHTML=`
+    <div class="bs-sec">Debtors — Money Owed to You</div>
+    ${debList.length?debList.map(d=>`<div class="bs-row"><span>${d.client}</span><span class="mono">${G(d.amount)}</span></div>`).join(''):`<div class="bs-row" style="color:var(--muted)"><span>No debtors</span><span>—</span></div>`}
+    <div class="bs-sec">Stock (Cost Value)</div>
+    ${S.stock.map(i=>`<div class="bs-row"><span style="font-size:13px">${i.name}</span><span class="mono" style="font-size:13px">${G(i.cost*i.qty)}</span></div>`).join('')}
+    <div class="bs-row" style="background:var(--bg)"><strong>Total Stock</strong><span class="mono" style="font-weight:700">${G(stockVal)}</span></div>
+    <div class="bs-sec">Cash & Bank</div>
+    <div class="bs-row"><span>Cash on Hand</span><span class="mono">${G(cash)}</span></div>
+    <div class="bs-row"><span>Bank Balance</span><span class="mono">${G(bank)}</span></div>`;
+  gi('bs-asset-tot').textContent=G(totalAssets);
+  const net=totalAssets-totalLiab;
+  gi('bs-net').innerHTML=`<span>${net>=0?'Net Worth (Equity)':'Net Deficit'}</span><span class="mono">${G(Math.abs(net))} ${net>=0?'▲':'▼'}</span>`;
+}
+
+// ═══ INIT ═══
+rDash();badge();
+if(isMobile()){gi('fab').style.display='none';}
+
+// ─── Service Worker Registration ───
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(r=>console.log('SW registered:', r.scope))
+      .catch(e=>console.warn('SW registration failed:', e));
+  });
+}
+
+// ─── iOS Install Banner ───
+// Show a subtle "Add to Home Screen" tip the first time on iOS Safari
+(function(){
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('siphouse_install_dismissed');
+  if(isIOS && !isStandalone && !dismissed){
+    const banner = document.createElement('div');
+    banner.id = 'install-banner';
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <span style="font-size:22px">📲</span>
+        <div>
+          <div style="font-weight:700;font-size:13px">Install SipHouse</div>
+          <div style="font-size:12px;opacity:.8">Tap <strong>Share</strong> then <strong>"Add to Home Screen"</strong> to use offline</div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('install-banner').remove();localStorage.setItem('siphouse_install_dismissed','1')"
+        style="background:none;border:none;color:#fff;font-size:22px;padding:4px 8px;cursor:pointer;opacity:.7;touch-action:manipulation">✕</button>`;
+    banner.style.cssText = `
+      position:fixed;bottom:calc(64px + env(safe-area-inset-bottom,0px));left:10px;right:10px;
+      background:#111;color:#fff;border-radius:14px;padding:14px 12px;
+      display:flex;align-items:center;gap:8px;z-index:500;
+      box-shadow:0 4px 24px rgba(0,0,0,.35);animation:su .3s ease;`;
+    document.body.appendChild(banner);
+  }
+})();
+</script>
+</body>
+</html>
