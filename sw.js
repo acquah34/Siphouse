@@ -1,5 +1,5 @@
-// SipHouse Service Worker — v2
-const CACHE = 'siphouse-v2';
+// SipHouse Service Worker — v3
+const CACHE = 'siphouse-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
