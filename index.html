@@ -702,7 +702,11 @@ tr:hover td{background:var(--bg);}
 <div class="mbg" id="m-supply"><div class="modal"><div class="modal-drag"></div><div class="modal-body">
   <div class="mtitle">Record Supply <span class="mclose" onclick="closeModal('m-supply')">✕</span></div>
   <div class="ibox" id="sup-info"></div>
-  <div class="fg"><label>Product / Description</label><input id="sup-prod" placeholder="e.g. Pepsi 500ml × 50"></div>
+  <div class="fg"><label>Product</label>
+  <select id="sup-prod" style="width:100%;padding:14px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:10px;color:var(--txt);font-size:16px;font-family:'Source Sans 3',sans-serif;outline:none;-webkit-appearance:none;appearance:none;">
+    <option value="">— Select product —</option>
+  </select>
+</div>
   <div class="fr">
     <div class="fg"><label>Quantity</label><input id="sup-qty" type="number" inputmode="numeric" placeholder="0" min="0" oninput="calcSup()"></div>
     <div class="fg"><label>Rate / Unit (GH₵)</label><input id="sup-rate" type="number" inputmode="decimal" placeholder="0.00" min="0" oninput="calcSup()"></div>
@@ -1393,16 +1397,30 @@ function confirmPayCred(){
 function openSupply(id){
   S.activeCrId=id;const c=S.creditors.find(x=>x.id===id);
   gi('sup-info').innerHTML=`<strong>${c.supplier}</strong><br><span style="color:var(--muted)">Current balance: </span><span class="mono" style="font-weight:700">${G(c.amount)}</span>`;
-  ['sup-prod','sup-qty','sup-rate','sup-notes'].forEach(id=>gi(id).value='');
+  // Populate stock dropdown
+  const sel=gi('sup-prod');
+  sel.innerHTML='<option value="">— Select product —</option>'+
+    S.stock.map(s=>`<option value="${s.id}">${s.name} (${s.cat}) — ${s.qty} in stock</option>`).join('');
+  ['sup-qty','sup-rate','sup-notes'].forEach(id=>gi(id).value='');
   gi('sup-calc').textContent='GH₵0.00';openModal('m-supply');
 }
 function saveSupply(){
   const c=S.creditors.find(x=>x.id===S.activeCrId);if(!c)return;
   const qty=gf('sup-qty'),rate=gf('sup-rate');
   if(qty<=0||rate<=0)return alert('Enter valid quantity and rate');
-  const amount=qty*rate,product=gv('sup-prod')||'—',notes=gv('sup-notes');
-  c.supplies=c.supplies||[];c.supplies.push({date:td(),product,qty,rate,amount,notes});
-  c.amount+=amount;c.lastSupply=td();persist();closeModal('m-supply');rCred();
+  const selEl=gi('sup-prod');
+  const stockId=parseInt(selEl.value);
+  if(!stockId)return alert('Select a product');
+  const stockItem=S.stock.find(s=>s.id===stockId);
+  if(!stockItem)return alert('Product not found');
+  const amount=qty*rate,notes=gv('sup-notes');
+  // Add quantity to stock
+  stockItem.qty+=qty;
+  // Record supply log with product name
+  c.supplies=c.supplies||[];
+  c.supplies.push({date:td(),product:stockItem.name,qty,rate,amount,notes});
+  c.amount+=amount;c.lastSupply=td();
+  persist();closeModal('m-supply');rCred();rStock();
 }
 function delCred(id){if(confirm('Remove this creditor?')){S.creditors=S.creditors.filter(c=>c.id!==id);persist();rCred();}}
 
